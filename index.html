@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM Transaction Management System | Priority Scheduling (OS Project)</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="bank-logo">
+                    <div class="logo-icon">
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h2>APEX BANK</h2>
+                        <span>OS ATM SIMULATOR</span>
+                    </div>
+                </div>
+                <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close Sidebar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">MAIN NAVIGATION</div>
+                <ul class="nav-list">
+                    <li class="nav-item active" data-target="dashboard-section">
+                        <a href="#dashboard-section">
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" data-target="terminal-section">
+                        <a href="#terminal-section">
+                            <i class="fa-solid fa-microchip"></i>
+                            <span>ATM CPU Visualizer</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" data-target="gantt-section">
+                        <a href="#gantt-section">
+                            <i class="fa-solid fa-chart-gantt"></i>
+                            <span>Gantt Chart</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" data-target="results-section">
+                        <a href="#results-section">
+                            <i class="fa-solid fa-table-list"></i>
+                            <span>Scheduling Results</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" data-target="analytics-section">
+                        <a href="#analytics-section">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <span>Performance Analytics</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" data-target="theory-section">
+                        <a href="#theory-section">
+                            <i class="fa-solid fa-book-open"></i>
+                            <span>OS Algorithm Theory</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" data-target="project-info-section">
+                        <a href="#project-info-section">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span>Project Overview</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="nav-section-title">ALGORITHM SPEC</div>
+                <div class="sidebar-algorithm-badge">
+                    <div class="badge-header">
+                        <span class="badge-status-dot"></span>
+                        <span class="badge-algo-name">Priority Scheduling</span>
+                    </div>
+                    <div class="badge-type">Non-Preemptive | FCFS Tie-break</div>
+                    <div class="badge-priority-rule">
+                        <span>P1: Highest</span> &bull; <span>P3: Lowest</span>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <span class="status-indicator-ping"></span>
+                    <div>
+                        <div class="status-text">ATM CPU Core Active</div>
+                        <div class="status-subtext" id="sidebarTimeDisplay">Simulated Time: 0 ms</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="main-wrapper">
+            <!-- Top Header Bar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle Sidebar">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="page-title-box">
+                        <h1>ATM Transaction Management System</h1>
+                        <p class="subtitle">Operating Systems Mini-Project &bull; Non-Preemptive Priority Scheduling Algorithm</p>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="simulation-status-pill" id="simStatusPill">
+                        <span class="pill-dot"></span>
+                        <span class="pill-text" id="simStatusText">IDLE / READY</span>
+                    </div>
+
+                    <div class="topbar-time-widget">
+                        <span class="clock-icon"><i class="fa-regular fa-clock"></i></span>
+                        <div class="time-meta">
+                            <span class="time-label">Simulated CPU Clock</span>
+                            <span class="time-val" id="cpuClockValue">T = 0 ms</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-outline" id="quickAddBtn" title="Add a new transaction">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add Transaction</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Global Action Controls Toolbar -->
+            <div class="control-toolbar">
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="runSimulationBtn" title="Run animated Priority Scheduling simulation">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Run Scheduling</span>
+                    </button>
+                    <button class="btn btn-secondary" id="instantScheduleBtn" title="Compute all calculations instantly">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Instant Compute</span>
+                    </button>
+                    <button class="btn btn-outline" id="stepSimBtn" title="Execute next scheduling step">
+                        <i class="fa-solid fa-forward-step"></i>
+                        <span>Step Next</span>
+                    </button>
+                    <button class="btn btn-outline" id="pauseResumeBtn" disabled title="Pause or Resume active simulation">
+                        <i class="fa-solid fa-pause"></i>
+                        <span id="pauseResumeText">Pause</span>
+                    </button>
+                    <button class="btn btn-outline" id="resetSimBtn" title="Reset simulation state to original">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Reset</span>
+                    </button>
+                    <button class="btn btn-outline" id="loadSampleBtn" title="Reload original college project sample dataset">
+                        <i class="fa-solid fa-database"></i>
+                        <span>Load Sample</span>
+                    </button>
+                    <button class="btn btn-danger-outline" id="clearAllBtn" title="Remove all transactions">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>Clear All</span>
+                    </button>
+                </div>
+
+                <div class="toolbar-speed-control">
+                    <span class="speed-label"><i class="fa-solid fa-gauge"></i> Speed:</span>
+                    <div class="speed-buttons">
+                        <button class="speed-btn" data-speed="2000">0.5x</button>
+                        <button class="speed-btn active" data-speed="1000">1x</button>
+                        <button class="speed-btn" data-speed="500">2x</button>
+                        <button class="speed-btn" data-speed="200">4x</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <main class="content-body">
+                <!-- 1. DASHBOARD & SUMMARY CARDS -->
+                <section class="content-section" id="dashboard-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fa-solid fa-chart-line text-emerald"></i>
+                            <h2>System Performance & Metric Cards</h2>
+                        </div>
+                        <div class="section-actions">
+                            <span class="badge badge-info">Algorithm: Non-Preemptive</span>
+                            <span class="badge badge-success">Tie-breaker: FCFS</span>
+                        </div>
+                    </div>
+
+                    <!-- 5 Main Metrics Cards -->
+                    <div class="metric-cards-grid">
+                        <!-- Card 1: Total Transactions -->
+                        <div class="metric-card">
+                            <div class="card-icon-box bg-blue-subtle text-blue">
+                                <i class="fa-solid fa-receipt"></i>
+                            </div>
+                            <div class="card-data">
+                                <span class="card-label">Total Transactions</span>
+                                <div class="card-value-group">
+                                    <h3 class="card-number" id="metricTotal">6</h3>
+                                    <span class="card-badge" id="metricTotalSub">In Queue</span>
+                                </div>
+                                <div class="card-progress">
+                                    <div class="progress-bar-fill bg-blue" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Pending Transactions -->
+                        <div class="metric-card">
+                            <div class="card-icon-box bg-amber-subtle text-amber">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <div class="card-data">
+                                <span class="card-label">Pending / Ready</span>
+                                <div class="card-value-group">
+                                    <h3 class="card-number" id="metricPending">6</h3>
+                                    <span class="card-badge badge-warning" id="metricPendingPercent">100%</span>
+                                </div>
+                                <div class="card-progress">
+                                    <div class="progress-bar-fill bg-amber" id="pendingProgressBar" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Completed Transactions -->
+                        <div class="metric-card">
+                            <div class="card-icon-box bg-emerald-subtle text-emerald">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div class="card-data">
+                                <span class="card-label">Completed Transactions</span>
+                                <div class="card-value-group">
+                                    <h3 class="card-number" id="metricCompleted">0</h3>
+                                    <span class="card-badge badge-success" id="metricCompletedPercent">0%</span>
+                                </div>
+                                <div class="card-progress">
+                                    <div class="progress-bar-fill bg-emerald" id="completedProgressBar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Average Waiting Time -->
+                        <div class="metric-card highlight-metric">
+                            <div class="card-icon-box bg-cyan-subtle text-cyan">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                            </div>
+                            <div class="card-data">
+                                <div class="card-label-with-tooltip">
+                                    <span class="card-label">Average Waiting Time</span>
+                                    <span class="tooltip-icon" title="Average time transactions spend waiting in ready queue (Total WT / N)"><i class="fa-solid fa-circle-question"></i></span>
+                                </div>
+                                <div class="card-value-group">
+                                    <h3 class="card-number" id="metricAvgWT">--</h3>
+                                    <span class="card-unit">ms</span>
+                                </div>
+                                <span class="card-formula">Formula: &Sigma;WT / N</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 5: Average Turnaround Time -->
+                        <div class="metric-card highlight-metric">
+                            <div class="card-icon-box bg-purple-subtle text-purple">
+                                <i class="fa-solid fa-stopwatch"></i>
+                            </div>
+                            <div class="card-data">
+                                <div class="card-label-with-tooltip">
+                                    <span class="card-label">Avg Turnaround Time</span>
+                                    <span class="tooltip-icon" title="Average time from arrival to completion (Total TAT / N)"><i class="fa-solid fa-circle-question"></i></span>
+                                </div>
+                                <div class="card-value-group">
+                                    <h3 class="card-number" id="metricAvgTAT">--</h3>
+                                    <span class="card-unit">ms</span>
+                                </div>
+                                <span class="card-formula">Formula: &Sigma;TAT / N</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. ATM CPU TERMINAL & REAL-TIME DISPATCHER VISUALIZER -->
+                <section class="content-section" id="terminal-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fa-solid fa-terminal text-emerald"></i>
+                            <h2>ATM Processing Terminal & Dispatch Engine</h2>
+                        </div>
+                        <div class="section-actions">
+                            <span class="text-muted text-sm"><i class="fa-solid fa-arrows-spin fa-spin-pulse"></i> Real-time OS Dispatch Monitor</span>
+                        </div>
+                    </div>
+
+                    <div class="terminal-grid">
+                        <!-- Interactive ATM Machine Hardware Simulator -->
+                        <div class="atm-machine-card">
+                            <div class="atm-header">
+                                <div class="atm-brand">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                    <span>APEX EXPRESS ATM #042</span>
+                                </div>
+                                <div class="atm-network-status">
+                                    <span class="pulse-indicator"></span>
+                                    <span>BANK NETWORK LINK: STABLE</span>
+                                </div>
+                            </div>
+
+                            <div class="atm-screen-bezel">
+                                <div class="atm-screen-inner" id="atmScreenInner">
+                                    <!-- Screen State 1: Idle -->
+                                    <div class="atm-screen-state" id="atmStateIdle">
+                                        <div class="atm-welcome-icon">
+                                            <i class="fa-solid fa-credit-card fa-beat-fade"></i>
+                                        </div>
+                                        <h3>ATM SYSTEM READY</h3>
+                                        <p>Awaiting transaction scheduling execution...</p>
+                                        <div class="atm-hint-badge">Click "Run Scheduling" or "Step Next"</div>
+                                    </div>
+
+                                    <!-- Screen State 2: Processing -->
+                                    <div class="atm-screen-state hidden" id="atmStateProcessing">
+                                        <div class="atm-tx-active-banner">
+                                            <span class="tx-badge-pulse" id="atmActiveTypeBadge">CASH WITHDRAWAL</span>
+                                            <span class="tx-id-badge" id="atmActiveId">T1</span>
+                                        </div>
+
+                                        <div class="atm-tx-body">
+                                            <div class="atm-customer-info">
+                                                <div class="avatar-circle" id="atmCustomerAvatar">AS</div>
+                                                <div>
+                                                    <div class="customer-name" id="atmCustomerName">Alice Smith</div>
+                                                    <div class="account-type" id="atmTxTypeSubtitle">Withdrawal Request</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="atm-stats-grid">
+                                                <div class="atm-stat-item">
+                                                    <span class="stat-lbl">Priority Level</span>
+                                                    <span class="stat-val" id="atmActivePriority">P2 (Medium)</span>
+                                                </div>
+                                                <div class="atm-stat-item">
+                                                    <span class="stat-lbl">Burst Time</span>
+                                                    <span class="stat-val" id="atmActiveBT">5 ms</span>
+                                                </div>
+                                                <div class="atm-stat-item">
+                                                    <span class="stat-lbl">Arrival Time</span>
+                                                    <span class="stat-val" id="atmActiveAT">0 ms</span>
+                                                </div>
+                                                <div class="atm-stat-item">
+                                                    <span class="stat-lbl">Elapsed / Total</span>
+                                                    <span class="stat-val" id="atmActiveElapsed">0 / 5 ms</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="atm-tx-progress-container">
+                                                <div class="progress-labels">
+                                                    <span>CPU Processing Core</span>
+                                                    <span id="atmProgressPercent">0%</span>
+                                                </div>
+                                                <div class="atm-progress-track">
+                                                    <div class="atm-progress-fill" id="atmProgressBarFill" style="width: 0%;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Screen State 3: Completed / Done -->
+                                    <div class="atm-screen-state hidden" id="atmStateComplete">
+                                        <div class="atm-success-icon">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                        </div>
+                                        <h3>ALL TRANSACTIONS PROCESSED</h3>
+                                        <p>Queue cleared with 100% schedule completion.</p>
+                                        <div class="atm-metrics-mini">
+                                            <span>Avg WT: <strong id="atmFinalAvgWT">5.83 ms</strong></span> &bull;
+                                            <span>Avg TAT: <strong id="atmFinalAvgTAT">9.17 ms</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hardware Physical slots animation -->
+                            <div class="atm-hardware-slots">
+                                <div class="hardware-slot card-slot">
+                                    <div class="slot-opening" id="cardSlotOpening">
+                                        <div class="card-insert-strip"></div>
+                                    </div>
+                                    <span class="slot-label"><i class="fa-solid fa-credit-card"></i> Card Reader</span>
+                                </div>
+                                <div class="hardware-slot cash-dispenser">
+                                    <div class="dispenser-opening" id="cashDispenserOpening">
+                                        <div class="cash-notes-stack"></div>
+                                    </div>
+                                    <span class="slot-label"><i class="fa-solid fa-money-bill-wave"></i> Cash Dispenser</span>
+                                </div>
+                                <div class="hardware-slot receipt-printer">
+                                    <div class="receipt-slot" id="receiptSlot"></div>
+                                    <span class="slot-label"><i class="fa-solid fa-receipt"></i> Receipt Slot</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scheduler Decision Reasoning & Ready Queue View -->
+                        <div class="scheduler-decision-card">
+                            <div class="card-header-sub">
+                                <h3><i class="fa-solid fa-brain text-emerald"></i> OS Scheduler Decision Engine</h3>
+                                <span class="badge badge-info" id="activeDecisionBadge">Monitoring</span>
+                            </div>
+
+                            <!-- OS Rationale Callout Box -->
+                            <div class="decision-reason-box" id="decisionReasonBox">
+                                <div class="reason-header">
+                                    <i class="fa-solid fa-lightbulb text-amber"></i>
+                                    <strong>Why Selected / Next Action:</strong>
+                                </div>
+                                <p class="reason-content" id="decisionReasonText">
+                                    Simulation is currently initialized. Click <strong>"Run Scheduling"</strong> to observe transactions being selected from the ready queue based on numerical Priority (1 = Highest), with ties resolved using First-Come First-Served (FCFS).
+                                </p>
+                            </div>
+
+                            <!-- Live Ready Queue Visualizer -->
+                            <div class="ready-queue-container">
+                                <div class="rq-header">
+                                    <div class="rq-title">
+                                        <i class="fa-solid fa-layer-group text-cyan"></i>
+                                        <span>Ready Queue at Current Time</span>
+                                        <span class="badge badge-secondary" id="readyQueueCount">0 Waiting</span>
+                                    </div>
+                                    <span class="text-xs text-muted">Sorted by Priority &bull; FCFS</span>
+                                </div>
+                                <div class="ready-queue-list" id="readyQueueList">
+                                    <div class="empty-queue-msg">Ready queue is currently empty.</div>
+                                </div>
+                            </div>
+
+                            <!-- Live Step-by-Step OS Scheduling Log -->
+                            <div class="scheduler-log-container">
+                                <div class="log-header">
+                                    <div class="log-title">
+                                        <i class="fa-solid fa-terminal text-emerald"></i>
+                                        <span>OS Execution Event Log</span>
+                                    </div>
+                                    <button class="btn btn-xs btn-outline" id="clearLogBtn" title="Clear log entries">Clear Log</button>
+                                </div>
+                                <div class="log-terminal-window" id="logTerminalWindow">
+                                    <div class="log-line info">[System] Simulator loaded with Non-Preemptive Priority Scheduling.</div>
+                                    <div class="log-line info">[System] Ready queue tie-breaker set to FCFS (Arrival Time).</div>
+                                    <div class="log-line info">[System] 6 Sample transactions loaded into memory.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. GANTT CHART VISUALIZATION -->
+                <section class="content-section" id="gantt-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fa-solid fa-chart-gantt text-emerald"></i>
+                            <h2>Visual Execution Gantt Chart</h2>
+                        </div>
+                        <div class="section-actions">
+                            <div class="gantt-legend">
+                                <div class="legend-item"><span class="legend-color-box p1-color"></span> Priority 1 (High)</div>
+                                <div class="legend-item"><span class="legend-color-box p2-color"></span> Priority 2 (Medium)</div>
+                                <div class="legend-item"><span class="legend-color-box p3-color"></span> Priority 3 (Low)</div>
+                                <div class="legend-item"><span class="legend-color-box idle-color"></span> CPU Idle Period</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gantt-card">
+                        <div class="gantt-instructions">
+                            <span><i class="fa-solid fa-circle-info text-blue"></i> Demonstrates timeline execution sequence of ATM transactions and CPU idle states.</span>
+                            <span class="text-muted" id="ganttTotalTime">Total Execution Time: 0 ms</span>
+                        </div>
+
+                        <!-- Gantt Timeline Canvas/Container -->
+                        <div class="gantt-scroll-wrapper">
+                            <div class="gantt-timeline-container" id="ganttTimelineContainer">
+                                <div class="gantt-empty-state" id="ganttEmptyState">
+                                    <i class="fa-solid fa-timeline"></i>
+                                    <p>Gantt Chart will render here once scheduling is run.</p>
+                                </div>
+                                <!-- Dynamically generated blocks and scale will be injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Gantt Summary Timeline Table -->
+                        <div class="gantt-sequence-pills" id="ganttSequencePills">
+                            <!-- Injected sequence summary: T1 (0-5) -> T2 (5-7) -> ... -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. TRANSACTION QUEUE TABLE -->
+                <section class="content-section" id="queue-table-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fa-solid fa-list-check text-emerald"></i>
+                            <h2>ATM Transaction Queue</h2>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-sm btn-primary" id="openAddModalBtn">
+                                <i class="fa-solid fa-plus"></i> Add New Transaction
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search and Filters Bar -->
+                    <div class="table-filter-bar">
+                        <div class="search-input-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="txSearchInput" placeholder="Search by ID or Customer Name...">
+                        </div>
+
+                        <div class="filter-dropdown-group">
+                            <!-- Filter Type -->
+                            <div class="filter-item">
+                                <label for="filterTypeSelect"><i class="fa-solid fa-filter"></i> Type:</label>
+                                <select id="filterTypeSelect" class="form-select">
+                                    <option value="ALL">All Types</option>
+                                    <option value="Cash Withdrawal">Cash Withdrawal</option>
+                                    <option value="Cash Deposit">Cash Deposit</option>
+                                    <option value="Balance Inquiry">Balance Inquiry</option>
+                                    <option value="Fund Transfer">Fund Transfer</option>
+                                    <option value="Mini Statement">Mini Statement</option>
+                                </select>
+                            </div>
+
+                            <!-- Filter Priority -->
+                            <div class="filter-item">
+                                <label for="filterPrioritySelect"><i class="fa-solid fa-layer-group"></i> Priority:</label>
+                                <select id="filterPrioritySelect" class="form-select">
+                                    <option value="ALL">All Priorities</option>
+                                    <option value="1">Priority 1 (Highest)</option>
+                                    <option value="2">Priority 2 (Medium)</option>
+                                    <option value="3">Priority 3 (Lowest)</option>
+                                </select>
+                            </div>
+
+                            <!-- Filter Status -->
+                            <div class="filter-item">
+                                <label for="filterStatusSelect"><i class="fa-solid fa-chart-pie"></i> Status:</label>
+                                <select id="filterStatusSelect" class="form-select">
+                                    <option value="ALL">All Statuses</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Ready">Ready</option>
+                                    <option value="Processing">Processing</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Queue Table -->
+                    <div class="table-responsive">
+                        <table class="data-table" id="transactionQueueTable">
+                            <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>Customer</th>
+                                    <th>Transaction Type</th>
+                                    <th>Arrival Time (AT)</th>
+                                    <th>Burst Time (BT)</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionTableBody">
+                                <!-- Dynamic rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Priority Legend & Rules Footnote -->
+                    <div class="priority-legend-footer">
+                        <div class="legend-header"><strong><i class="fa-solid fa-shield"></i> Priority Rule Standard:</strong></div>
+                        <div class="legend-rules">
+                            <span class="legend-rule-badge p1-badge"><i class="fa-solid fa-angles-up"></i> Priority 1 = Highest Priority (Immediate Banking / Security / VIP)</span>
+                            <span class="legend-rule-badge p2-badge"><i class="fa-solid fa-minus"></i> Priority 2 = Medium Priority (Standard ATM Requests)</span>
+                            <span class="legend-rule-badge p3-badge"><i class="fa-solid fa-angles-down"></i> Priority 3 = Lowest Priority (Bulk / Batch / Non-urgent)</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. SCHEDULING RESULTS & CALCULATIONS TABLE -->
+                <section class="content-section" id="results-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fa-solid fa-square-root-variable text-emerald"></i>
+                            <h2>Scheduling Calculations & Results Table</h2>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-sm btn-outline" id="exportResultsBtn" title="Export results as CSV text">
+                                <i class="fa-solid fa-download"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="formula-banner">
+                        <div class="formula-item">
+                            <span class="formula-lbl">Completion Time (CT):</span>
+                            <span class="formula-code">Time at which the transaction finishes execution</span>
+                        </div>
+                        <div class="formula-item">
+                            <span class="formula-lbl">Turnaround Time (TAT):</span>
+                            <span class="formula-code">TAT = CT &minus; AT</span>
+                        </div>
+                        <div class="formula-item">
+                            <span class="formula-lbl">Waiting Time (WT):</span>
+                            <span class="formula-code">WT = TAT &minus; BT</span>
+                        </div>
+                    </div>
+
+                    <!-- Results Table -->
+                    <div class="table-responsive">
+                        <table class="data-table results-table" id="resultsTable">
+                            <thead>
+                                <tr>
+                                    <th>Execution #</th>
+                                    <th>Tx ID</th>
+                                    <th>Customer</th>
+                                    <th>Type</th>
+                                    <th>Priority</th>
+                                    <th>Arrival (AT)</th>
+                                    <th>Burst (BT)</th>
+                                    <th>Start Time</th>
+                                    <th>Completion (CT)</th>
+                                    <th>Turnaround (TAT)</th>
+                                    <th>Waiting (WT)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBody">
+                                <tr>
+                                    <td colspan="11" class="text-center text-muted">Run the Priority Scheduling algorithm to generate calculated metrics.</td>
+                                </tr>
+                            </tbody>
+                            <tfoot id="resultsTableFoot" class="hidden">
+                                <tr class="summary-row">
+                                    <td colspan="9" class="text-right"><strong>Averages & Total Time:</strong></td>
+                                    <td><strong id="resultsAvgTAT">--</strong></td>
+                                    <td><strong id="resultsAvgWT">--</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 6. PERFORMANCE ANALYTICS & CHARTS -->
+                <section class="content-section" id="analytics-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fa-solid fa-chart-column text-emerald"></i>
+                            <h2>Visual Analytics & Performance Comparisons</h2>
+                        </div>
+                        <div class="section-actions">
+                            <span class="badge badge-info">Chart.js Analytics Engine</span>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <!-- Chart 1: WT vs TAT Comparison -->
+                        <div class="chart-card">
+                            <div class="card-header-sub">
+                                <h3><i class="fa-solid fa-chart-bar text-cyan"></i> Waiting Time vs. Turnaround Time</h3>
+                                <span class="text-xs text-muted">Per Transaction Comparison</span>
+                            </div>
+                            <div class="chart-canvas-wrapper">
+                                <canvas id="chartWTTAT"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 2: Transaction Types & Priorities Distribution -->
+                        <div class="chart-card">
+                            <div class="card-header-sub">
+                                <h3><i class="fa-solid fa-chart-pie text-emerald"></i> Transaction Type Breakdown</h3>
+                                <span class="text-xs text-muted">Queue Composition</span>
+                            </div>
+                            <div class="chart-canvas-wrapper">
+                                <canvas id="chartTypeDist"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. ALGORITHM EXPLANATION & OS THEORY PANEL -->
+                <section class="content-section" id="theory-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fa-solid fa-graduation-cap text-emerald"></i>
+                            <h2>Operating Systems Algorithm Reference Guide</h2>
+                        </div>
+                        <div class="section-actions">
+                            <span class="badge badge-warning"><i class="fa-solid fa-triangle-exclamation"></i> Educational Simulation</span>
+                        </div>
+                    </div>
+
+                    <!-- Educational Notice Banner -->
+                    <div class="disclaimer-alert">
+                        <div class="alert-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+                        <div class="alert-content">
+                            <h4>Academic Demonstration & OS Simulation Notice</h4>
+                            <p>This application is an educational simulation developed specifically for demonstrating Operating Systems CPU Scheduling concepts. It does <strong>not</strong> connect to any real-world banking network, ATM hardware, or live financial database.</p>
+                        </div>
+                    </div>
+
+                    <!-- Accordion / OS Theory Cards -->
+                    <div class="theory-grid">
+                        <div class="theory-card">
+                            <div class="theory-card-header">
+                                <div class="theory-icon"><i class="fa-solid fa-ranking-star"></i></div>
+                                <h3>What is Priority Scheduling?</h3>
+                            </div>
+                            <div class="theory-card-body">
+                                <p><strong>Priority Scheduling</strong> is a CPU scheduling algorithm where each process (or in our simulation, each ATM transaction) is assigned a numerical priority. The CPU is allocated to the process with the highest priority currently available in the ready queue.</p>
+                                <ul>
+                                    <li>In this system, <strong>Priority 1 represents the highest priority</strong>, Priority 2 represents medium priority, and Priority 3 represents lowest priority.</li>
+                                    <li>When multiple transactions are ready at time <code>t</code>, the CPU chooses the one with the lowest numerical priority integer.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="theory-card">
+                            <div class="theory-card-header">
+                                <div class="theory-icon"><i class="fa-solid fa-building-columns"></i></div>
+                                <h3>Why Use It in an ATM System?</h3>
+                            </div>
+                            <div class="theory-card-body">
+                                <p>In real banking environments, transactions have different urgency and system resource profiles:</p>
+                                <ul>
+                                    <li><strong>High Priority (P1):</strong> Fast, security-critical, or high-value transactions such as Balance Inquiries or VIP/Wire Transfers that need swift verification.</li>
+                                    <li><strong>Medium Priority (P2):</strong> Standard customer operations like Mini Statements and routine Cash Withdrawals.</li>
+                                    <li><strong>Low Priority (P3):</strong> Heavy, multi-step operations like Cash Deposits that require hardware counting and validation.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="theory-card">
+                            <div class="theory-card-header">
+                                <div class="theory-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                                <h3>Preemptive vs. Non-Preemptive</h3>
+                            </div>
+                            <div class="theory-card-body">
+                                <p><strong>Non-Preemptive (Used in this Project):</strong> Once an ATM transaction begins execution, it keeps control of the simulated CPU/ATM dispenser until its burst time is completely finished. It cannot be interrupted even if a higher-priority transaction arrives during its execution.</p>
+                                <p><strong>Preemptive:</strong> If a transaction with a higher priority arrives while a lower priority transaction is running, the running transaction is interrupted (preempted) and placed back into the ready queue.</p>
+                            </div>
+                        </div>
+
+                        <div class="theory-card">
+                            <div class="theory-card-header">
+                                <div class="theory-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                                <h3>FCFS Tie-Breaking & Insertion Order</h3>
+                            </div>
+                            <div class="theory-card-body">
+                                <p>When two or more transactions in the ready queue share identical priority numbers:</p>
+                                <ul>
+                                    <li>The tie is broken using <strong>First-Come, First-Served (FCFS)</strong> based on Arrival Time (<code>AT</code>). The transaction that arrived earlier executes first.</li>
+                                    <li>If both Priority and Arrival Time are identical, their original <strong>insertion order</strong> in the queue is preserved to maintain deterministic execution.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="theory-card">
+                            <div class="theory-card-header">
+                                <div class="theory-icon"><i class="fa-solid fa-calculator"></i></div>
+                                <h3>Mathematical Formulas</h3>
+                            </div>
+                            <div class="theory-card-body">
+                                <div class="math-formula-box">
+                                    <div class="formula-line"><code>Turnaround Time (TAT) = Completion Time (CT) &minus; Arrival Time (AT)</code></div>
+                                    <div class="formula-line"><code>Waiting Time (WT) = Turnaround Time (TAT) &minus; Burst Time (BT)</code></div>
+                                    <div class="formula-line"><code>Average WT = (&Sigma; WT of all transactions) / N</code></div>
+                                    <div class="formula-line"><code>Average TAT = (&Sigma; TAT of all transactions) / N</code></div>
+                                </div>
+                                <p class="text-sm text-muted">Waiting time is the total duration a transaction spent waiting in the ready queue before completing its service.</p>
+                            </div>
+                        </div>
+
+                        <div class="theory-card">
+                            <div class="theory-card-header">
+                                <div class="theory-icon"><i class="fa-solid fa-triangle-exclamation text-amber"></i></div>
+                                <h3>Starvation & The Aging Solution</h3>
+                            </div>
+                            <div class="theory-card-body">
+                                <p><strong>The Starvation Problem:</strong> In a high-traffic priority scheduling system, low-priority transactions (e.g., Priority 3) may be delayed indefinitely if high-priority transactions continuously enter the ready queue.</p>
+                                <p><strong>The OS Solution (Aging):</strong> Operating systems resolve starvation using <em>Aging</em>, a technique where the priority of waiting processes is gradually increased over time so that every process is guaranteed eventual CPU allocation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 8. PROJECT INFORMATION SECTION -->
+                <section class="content-section" id="project-info-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fa-solid fa-circle-info text-emerald"></i>
+                            <h2>Project Details & Viva Presentation Notes</h2>
+                        </div>
+                    </div>
+
+                    <div class="project-info-card">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Project Title</span>
+                                <span class="info-value">ATM Transaction Management System Using Priority Scheduling Algorithm</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Course / Domain</span>
+                                <span class="info-value">Operating Systems (OS) Mini-Project &bull; Process Synchronization & Scheduling</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Algorithm</span>
+                                <span class="info-value">Non-Preemptive Priority Scheduling with FCFS Tie-Breaking</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Technology Stack</span>
+                                <span class="info-value">Vanilla HTML5, Modern CSS3 (Grid/Flexbox/Animations), JavaScript (ES6+), Chart.js</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Core Objectives</span>
+                                <span class="info-value">Simulate real-world transaction management, calculate CT, TAT, WT, render dynamic Gantt charts, handle CPU idle time, and eliminate arbitrary decisions.</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Architecture</span>
+                                <span class="info-value">100% Client-Side In-Memory Event Simulation &bull; Zero Server Dependencies &bull; Runs in Any Modern Browser</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Footer -->
+            <footer class="app-footer">
+                <div class="footer-left">
+                    <span>ATM Transaction Management System &bull; Operating Systems Laboratory Project</span>
+                </div>
+                <div class="footer-right">
+                    <span>Built with <i class="fa-solid fa-heart text-red"></i> for College Project Demonstrations</span>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT TRANSACTION -->
+    <div class="modal-backdrop" id="addTxModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title-group">
+                        <i class="fa-solid fa-circle-plus text-emerald"></i>
+                        <h3>Add New ATM Transaction</h3>
+                    </div>
+                    <button class="modal-close-btn" id="modalCloseBtn" aria-label="Close Modal">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <form id="addTxForm">
+                    <div class="modal-body">
+                        <!-- Validation alert -->
+                        <div class="form-alert hidden" id="formAlertBox">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span id="formAlertMessage">Please correct the highlighted errors.</span>
+                        </div>
+
+                        <!-- Customer Name -->
+                        <div class="form-group">
+                            <label for="inputCustomerName">Customer Name <span class="text-danger">*</span></label>
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-user"></i>
+                                <input type="text" id="inputCustomerName" class="form-control" placeholder="e.g. John Doe" required>
+                            </div>
+                            <span class="field-error" id="errCustomerName"></span>
+                        </div>
+
+                        <!-- Transaction Type -->
+                        <div class="form-group">
+                            <label for="inputTxType">Transaction Type <span class="text-danger">*</span></label>
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-money-bill-transfer"></i>
+                                <select id="inputTxType" class="form-control" required>
+                                    <option value="Cash Withdrawal">Cash Withdrawal (Standard Cash Out)</option>
+                                    <option value="Cash Deposit">Cash Deposit (Cash In Machine)</option>
+                                    <option value="Balance Inquiry">Balance Inquiry (Fast Query)</option>
+                                    <option value="Fund Transfer">Fund Transfer (Interbank Account Transfer)</option>
+                                    <option value="Mini Statement">Mini Statement (Print Recent History)</option>
+                                </select>
+                            </div>
+                            <span class="field-hint">Selecting a type auto-suggests typical burst times and priorities.</span>
+                        </div>
+
+                        <!-- Arrival Time & Burst Time (2 Columns) -->
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="inputArrivalTime">Arrival Time (AT) <span class="text-danger">*</span></label>
+                                <div class="input-with-icon">
+                                    <i class="fa-solid fa-clock"></i>
+                                    <input type="number" id="inputArrivalTime" class="form-control" min="0" value="0" required>
+                                </div>
+                                <span class="field-hint">Time when transaction arrives (ms)</span>
+                                <span class="field-error" id="errArrivalTime"></span>
+                            </div>
+
+                            <div class="form-group col-6">
+                                <label for="inputBurstTime">Burst Time (BT) <span class="text-danger">*</span></label>
+                                <div class="input-with-icon">
+                                    <i class="fa-solid fa-stopwatch"></i>
+                                    <input type="number" id="inputBurstTime" class="form-control" min="1" max="100" value="3" required>
+                                </div>
+                                <span class="field-hint">Execution duration needed (ms)</span>
+                                <span class="field-error" id="errBurstTime"></span>
+                            </div>
+                        </div>
+
+                        <!-- Priority Selection -->
+                        <div class="form-group">
+                            <label for="inputPriority">Priority Level <span class="text-danger">*</span></label>
+                            <div class="priority-selector-cards">
+                                <label class="priority-option-card">
+                                    <input type="radio" name="priorityRadio" value="1">
+                                    <div class="p-card-content p1">
+                                        <div class="p-card-badge">P1</div>
+                                        <div class="p-card-desc">
+                                            <strong>Highest Priority</strong>
+                                            <span>Immediate / Urgent / VIP</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="priority-option-card">
+                                    <input type="radio" name="priorityRadio" value="2" checked>
+                                    <div class="p-card-content p2">
+                                        <div class="p-card-badge">P2</div>
+                                        <div class="p-card-desc">
+                                            <strong>Medium Priority</strong>
+                                            <span>Standard Operations</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="priority-option-card">
+                                    <input type="radio" name="priorityRadio" value="3">
+                                    <div class="p-card-content p3">
+                                        <div class="p-card-badge">P3</div>
+                                        <div class="p-card-desc">
+                                            <strong>Lowest Priority</strong>
+                                            <span>Batch / Bulk / Non-urgent</span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                            <span class="field-error" id="errPriority"></span>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="modalCancelBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="modalSubmitBtn">
+                            <i class="fa-solid fa-check"></i> Add to Queue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
